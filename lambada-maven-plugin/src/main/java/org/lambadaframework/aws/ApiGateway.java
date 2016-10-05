@@ -79,8 +79,6 @@ public class ApiGateway extends AWSTools {
     protected final String OUTPUT_TEMPLATE = "$input.json('$.entity')";
     
     private final String TEXT_OUTPUT_TEMPLATE = "$input.path('$.entity')";
-    
-    private final String HTML_OUTPUT_TEMPLATE = "$input.path('$.entity')";
 
     static {
         try {
@@ -498,46 +496,48 @@ public class ApiGateway extends AWSTools {
              */
             for (int responseCode : RESPONSE_CODES) {
                 
-                PutMethodResponseRequest responseRequest = new PutMethodResponseRequest()
+                List<MediaType> producedTypes = method.getProducedTypes();
+
+                PutMethodResponseRequest methodResponseRequest = new PutMethodResponseRequest()
                         .withRestApiId(amazonApi.getId())
                         .withResourceId(apiGatewayResource.getId())
                         .withHttpMethod(httpMethod)
                         .withStatusCode(String.valueOf(responseCode));
-                List<MediaType> producedTypes = method.getProducedTypes();
                 if(producedTypes!=null && !producedTypes.isEmpty()) {
                     Map<String, String> responseModels = new HashMap<>();
                     producedTypes.forEach(t -> responseModels.put(t.toString(), "Empty"));
-                    responseRequest.withResponseModels(responseModels);
+                    methodResponseRequest.withResponseModels(responseModels);
                 }
                 
-                getApiGatewayClient().putMethodResponse(responseRequest);
+                getApiGatewayClient().putMethodResponse(methodResponseRequest);
 
                 String selectionPattern = (responseCode != 200 ? String.valueOf(responseCode) + ".*" : "");
 
-                getApiGatewayClient().putIntegrationResponse(new PutIntegrationResponseRequest()
+                PutIntegrationResponseRequest integrationResponseRequest = new PutIntegrationResponseRequest()
                         .withRestApiId(amazonApi.getId())
                         .withResourceId(apiGatewayResource.getId())
                         .withHttpMethod(httpMethod)
                         .withSelectionPattern(selectionPattern)
-                        .withResponseTemplates(getResponseTemplate())
-                        .withStatusCode(String.valueOf(responseCode))
-                );
+                        .withStatusCode(String.valueOf(responseCode));
+                Map<String, String> responseTemplates = new HashMap<>();
+                if(producedTypes!=null && !producedTypes.isEmpty()) {
+                    producedTypes.forEach(t -> {
+                        if(t.equals(MediaType.APPLICATION_JSON)) {
+                            responseTemplates.put(t.toString(), OUTPUT_TEMPLATE);
+                        } else {
+                            responseTemplates.put(t.toString(), TEXT_OUTPUT_TEMPLATE);
+                        }
+                    });
+                } else {
+                    responseTemplates.put(MediaType.APPLICATION_JSON, OUTPUT_TEMPLATE);
+                }
+                integrationResponseRequest.withResponseTemplates(responseTemplates);
+                
+                getApiGatewayClient().putIntegrationResponse(integrationResponseRequest);
 
             }
 
         });
-    }
-
-
-    private Map<String, String> getResponseTemplate() {
-
-        Map<String, String> responseTemplate = new LinkedHashMap<>();
-
-        responseTemplate.put(MediaType.APPLICATION_JSON, OUTPUT_TEMPLATE);
-        responseTemplate.put(MediaType.TEXT_PLAIN, TEXT_OUTPUT_TEMPLATE);
-        responseTemplate.put(MediaType.TEXT_HTML, HTML_OUTPUT_TEMPLATE);
-
-        return responseTemplate;
     }
 
 
