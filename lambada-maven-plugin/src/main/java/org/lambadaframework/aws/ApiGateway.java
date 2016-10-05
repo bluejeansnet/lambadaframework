@@ -12,17 +12,21 @@ import com.amazonaws.services.apigateway.AmazonApiGatewayClient;
 import com.amazonaws.services.apigateway.model.*;
 import com.amazonaws.util.IOUtils;
 
+
 import org.lambadaframework.deployer.Deployment;
 import org.lambadaframework.jaxrs.model.Resource;
 import org.lambadaframework.jaxrs.model.ResourceMethod;
 import org.lambadaframework.jaxrs.JAXRSParser;
+
 
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
+
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -71,6 +75,12 @@ public class ApiGateway extends AWSTools {
 
     
     private static String URLENCODED_INPUT_TEMPLATE;
+    
+    protected final String OUTPUT_TEMPLATE = "$input.json('$.entity')";
+    
+    private final String TEXT_OUTPUT_TEMPLATE = "$input.path('$.entity')";
+    
+    private final String HTML_OUTPUT_TEMPLATE = "$input.path('$.entity')";
 
     static {
         try {
@@ -79,8 +89,6 @@ public class ApiGateway extends AWSTools {
             URLENCODED_INPUT_TEMPLATE = "";
         }
     }
-    
-    protected final String OUTPUT_TEMPLATE = "$input.json('$.entity')";
 
     protected final String AUTHORIZATION_TYPE = "NONE";
     protected final String INVOCATION_METHOD = "POST";
@@ -489,13 +497,20 @@ public class ApiGateway extends AWSTools {
              * Put response codes
              */
             for (int responseCode : RESPONSE_CODES) {
-                getApiGatewayClient().putMethodResponse(new PutMethodResponseRequest()
+                
+                PutMethodResponseRequest responseRequest = new PutMethodResponseRequest()
                         .withRestApiId(amazonApi.getId())
                         .withResourceId(apiGatewayResource.getId())
                         .withHttpMethod(httpMethod)
-                        .withStatusCode(String.valueOf(responseCode))
-                );
-
+                        .withStatusCode(String.valueOf(responseCode));
+                List<MediaType> producedTypes = method.getProducedTypes();
+                if(producedTypes!=null && !producedTypes.isEmpty()) {
+                    Map<String, String> responseModels = new HashMap<>();
+                    producedTypes.forEach(t -> responseModels.put(t.toString(), "Empty"));
+                    responseRequest.withResponseModels(responseModels);
+                }
+                
+                getApiGatewayClient().putMethodResponse(responseRequest);
 
                 String selectionPattern = (responseCode != 200 ? String.valueOf(responseCode) + ".*" : "");
 
@@ -519,6 +534,8 @@ public class ApiGateway extends AWSTools {
         Map<String, String> responseTemplate = new LinkedHashMap<>();
 
         responseTemplate.put(MediaType.APPLICATION_JSON, OUTPUT_TEMPLATE);
+        responseTemplate.put(MediaType.TEXT_PLAIN, TEXT_OUTPUT_TEMPLATE);
+        responseTemplate.put(MediaType.TEXT_HTML, HTML_OUTPUT_TEMPLATE);
 
         return responseTemplate;
     }
