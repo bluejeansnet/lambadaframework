@@ -22,8 +22,7 @@ public class AppContext {
             synchronized (this) {
                 if (this.packageName == null) {
                     this.packageName = packageName;
-                    String[] packageSplit = packageName.split("\\.");
-                    springContext.scan(packageSplit[0] + "." + packageSplit[1]);
+                    springContext.scan(packageName);
                     springContext.refresh();
                     springContext.start();
                     springContext.registerShutdownHook();
