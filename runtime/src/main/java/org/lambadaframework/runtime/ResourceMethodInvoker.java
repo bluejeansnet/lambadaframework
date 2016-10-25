@@ -28,8 +28,6 @@ public class ResourceMethodInvoker {
 
     private static AppContext appContext = AppContext.getInstance();
 
-    private static Thread springStarter;
-
     private ResourceMethodInvoker() {
     }
 
@@ -68,25 +66,8 @@ public class ResourceMethodInvoker {
         Method method = invocable.getHandlingMethod();
         Class<?> clazz = invocable.getHandler().getHandlerClass();
 
-        Object instance = null;
-        if (appContext.getPackageName() == null) {
-            instance = clazz.newInstance();
-            if (springStarter == null) {
-                synchronized (ResourceMethodInvoker.class) {
-                    if (springStarter == null) {
-                        springStarter = new Thread() {
-                            @Override
-                            public void run() {
-                                appContext.setPackageName(request.getPackage());
-                            }
-                        };
-                        springStarter.start();
-                    }
-                }
-            }
-        } else {
-            instance = appContext.getBean(clazz);
-        }
+        appContext.setPackageName(request.getPackage());
+        Object instance = appContext.getBean(clazz);
 
         List<Object> varargs = new ArrayList<>();
 
