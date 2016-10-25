@@ -66,9 +66,18 @@ public class ResourceMethodInvoker {
         Method method = invocable.getHandlingMethod();
         Class<?> clazz = invocable.getHandler().getHandlerClass();
 
-        // Object instance = clazz.newInstance();
-        appContext.setPackageName(request.getPackage());
-        Object instance = appContext.getBean(clazz);
+        Object instance = null;
+        if (appContext.getPackageName() == null) {
+            instance = clazz.newInstance();
+            new Thread() {
+                @Override
+                public void run() {
+                    appContext.setPackageName(request.getPackage());
+                }
+            };
+        } else {
+            instance = appContext.getBean(clazz);
+        }
 
         List<Object> varargs = new ArrayList<>();
 

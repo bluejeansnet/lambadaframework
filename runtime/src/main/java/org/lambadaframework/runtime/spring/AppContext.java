@@ -21,11 +21,13 @@ public class AppContext {
         if (this.packageName == null) {
             synchronized (this) {
                 if (this.packageName == null) {
-                    this.packageName = packageName;
                     springContext.scan(packageName);
+                    String[] packageSplit = packageName.split("\\.");
+                    springContext.scan(packageSplit[0] + "." + packageSplit[1]);
                     springContext.refresh();
                     springContext.start();
                     springContext.registerShutdownHook();
+                    this.packageName = packageName;
                 }
             }
         }
