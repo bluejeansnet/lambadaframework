@@ -10,30 +10,34 @@ public class AppContext {
         return appContext;
     }
 
-    private AnnotationConfigApplicationContext springContext = new AnnotationConfigApplicationContext();
+    private final AnnotationConfigApplicationContext springContext = new AnnotationConfigApplicationContext();
     private String packageName = null;
 
     public void destroy() {
         springContext.stop();
     }
 
-    public void setPackageName(String packageName) {
+    public void setPackageName(final String packageName) {
         if (this.packageName == null) {
             synchronized (this) {
                 if (this.packageName == null) {
                     springContext.scan(packageName);
-                    String[] packageSplit = packageName.split("\\.");
+                    final String[] packageSplit = packageName.split("\\.");
                     springContext.scan(packageSplit[0] + "." + packageSplit[1]);
-                    springContext.refresh();
-                    springContext.start();
-                    springContext.registerShutdownHook();
+                    try {
+                        springContext.refresh();
+                        springContext.start();
+                        springContext.registerShutdownHook();
+                    } catch (final RuntimeException ex) {
+                        // might not work in this case
+                    }
                     this.packageName = packageName;
                 }
             }
         }
     }
 
-    public <T> T getBean(Class<T> clazz) {
+    public <T> T getBean(final Class<T> clazz) {
         return springContext.getBean(clazz);
     }
 
