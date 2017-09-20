@@ -26,12 +26,16 @@
             <name>Cagatay Gurturk</name>
             <email>info@cagataygurturk.com</email>
         </developer>
+        <developer>
+            <name>Dinesh Ilindra</name>
+            <email>dinesh.iln@gmail.com</email>
+        </developer>
     </developers>
 
     <scm>
-        <connection>scm:git:git@github.com:lambadaframework/lambadaframework.git</connection>
-        <developerConnection>scm:git:git@github.com:lambadaframework/lambadaframework.git</developerConnection>
-        <url>git@github.com:lambadaframework/lambadaframework.git</url>
+        <connection>scm:git:git@github.com:bluejeansnet/lambadaframework.git</connection>
+        <developerConnection>scm:git:git@github.com:bluejeansnet/lambadaframework.git</developerConnection>
+        <url>git@github.com:bluejeansnet/lambadaframework.git</url>
     </scm>
 
     <properties>

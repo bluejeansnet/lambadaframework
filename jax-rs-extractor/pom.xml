@@ -7,6 +7,7 @@
         <version>0.0.6</version>
     </parent>
     <artifactId>jax-rs-extractor</artifactId>
+    <version>0.0.7</version>
     <packaging>jar</packaging>
     <name>Lambada JAX-RS Scanner</name>
     <properties>
@@ -20,7 +21,16 @@
             <artifactId>jersey-server</artifactId>
             <version>2.23.1</version>
         </dependency>
-
+        <dependency>
+            <groupId>org.glassfish.jersey.core</groupId>
+            <artifactId>jersey-common</artifactId>
+            <version>2.23.1</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.ws.rs</groupId>
+            <artifactId>javax.ws.rs-api</artifactId>
+            <version>2.0.1</version>
+        </dependency>
         <dependency>
             <groupId>com.bluejeans.lambadaframework</groupId>
             <artifactId>stub-handlers</artifactId>
